@@ -85,7 +85,7 @@ def encoding(msg):
         print(f"IN lev_i \t= {lev_b}({hex(lev_b)})")
         print(f"IN prav_i \t= {prav_b}({hex(prav_b)})\n")
 
-        if (i > 1):
+        if (i < ROUNDS - 1):
             # print('YES')
             lev_b = prav_i 
             prav_b = lev_i
@@ -111,7 +111,7 @@ def decoding(e_msg):
         print(f"IN lev_i \t= {lev_b}({hex(lev_b)})")
         print(f"IN prav_i \t= {prav_b}({hex(prav_b)})\n")
 
-        if (i < ROUNDS - 1):
+        if (i > 0):
             # print('YES')
             lev_b = prav_i 
             prav_b = lev_i
