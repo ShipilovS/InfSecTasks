@@ -50,18 +50,18 @@ def ROR(x, n, bits=32):
 def ROL(x, n, bits=32):
     return ROR(x, bits - n, bits)
 
-def vlevo(x, t, bits=32):
-    return ((x << t) | (x >> (bits - t)))
+def vlevo(x, t):
+    return (x << t) | (x >> (32 - t))
 
 def vpravo32(x, t, bits=32):
-    return ctypes.c_uint32((x >> t) | (x << (32 - t))).value
+    return (x >> t) | (x << (32 - t))
 
 def vpravo64(x, t):
     return ctypes.c_uint64((x >> t) | (x << (64 - t))).value
 
 def F(L : int, K : int):
     f1 = vlevo(L, 9)
-    f2 = vpravo32(K, 11)
+    f2 = vpravo32(K, 11) # | L
     return f1 ^ f2
 
 def Ki(i):
@@ -81,9 +81,10 @@ def encoding(msg):
     for i in range(ROUNDS):
         K_i = Ki(i)
         lev_i = lev_b
+        print(f"ki = #{K_i}")
         prav_i = prav_b ^ F(lev_b, K_i)
-        print(f"IN lev_i \t= {lev_b}({hex(lev_b)})")
-        print(f"IN prav_i \t= {prav_b}({hex(prav_b)})\n")
+        print(f"IN lev_b \t= {lev_b}({hex(lev_b)})")
+        print(f"IN prav_b \t= {prav_b}({hex(prav_b)})\n")
 
         if (i < ROUNDS - 1):
             # print('YES')
@@ -93,8 +94,8 @@ def encoding(msg):
             # print('NO')
             lev_b = lev_i
             prav_b = prav_i
-        print(f"OUT lev_i \t= {lev_b}({hex(prav_b)})")
-        print(f"OUT prav_i \t= {prav_b}({hex(prav_b)})\n")
+        print(f"OUT lev_b \t= {lev_b}({hex(lev_b)})")
+        print(f"OUT prav_b \t= {prav_b}({hex(prav_b)})\n")
     shifroblok = lev_b
     shifroblok = ctypes.c_uint32((shifroblok << 32) | (prav_b & convert_from_hex_to_decimal(F32))).value
     return shifroblok
