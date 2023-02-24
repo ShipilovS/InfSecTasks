@@ -37,19 +37,6 @@ def convert_from_decimal_to_bin32(value):
     return bin(value >> 32)
 
 # func
-def binary(value):
-    return bin(value)[2:]
-
-# Циклический сдвиг вправо
-def ROR(x, n, bits=32):
-    mask = (2**n) - 1
-    mask_bits = x & mask
-    return (x >> n) | (mask_bits << (bits - n))
-
-# Циклический сдвиг влево
-def ROL(x, n, bits=32):
-    return ROR(x, bits - n, bits)
-
 def vlevo(x, t):
     return ctypes.c_uint32((x << t) | (x >> (32 - t))).value
 
@@ -68,7 +55,6 @@ def Ki(i):
     # Преобразование в uint32
     value = ctypes.c_uint32(vpravo64(convert_from_hex_to_decimal(KEY), 8*i)).value # с 0b + 32 бита или [2:34]
     return value
-# ==
 
 def encoding(msg):
     # msg = msg.replace('0x', '')
@@ -79,46 +65,50 @@ def encoding(msg):
     prav_b  = ctypes.c_uint32(convert_from_hex_to_decimal(msg) & convert_from_hex_to_decimal(F32)).value
     # assert len(lev_b) == len(prav_b) # !
     for i in range(ROUNDS):
+        print(f"Encoding")
+        print(f"\n================")
+        print(f"Round = {i}")
         K_i = Ki(i)
         lev_i = lev_b
-        print(f"ki = {K_i}")
         prav_i = prav_b ^ F(lev_b, K_i)
-        print(f"IN lev_b \t= {lev_b}({hex(lev_b)})")
-        print(f"IN prav_b \t= {prav_b}({hex(prav_b)})\n")
+        print(f"IN lev_b  \t = {lev_b}({hex(lev_b)})")
+        print(f"IN prav_b \t = {prav_b}({hex(prav_b)})\n")
 
         if (i != ROUNDS - 1):
-            print('YES')
             lev_b = prav_i 
             prav_b = lev_i
         else:
-            print('NO')
             lev_b = lev_i
             prav_b = prav_i
-        print(f"OUT lev_b \t= {lev_b}({hex(lev_b)})")
-        print(f"OUT prav_b \t= {prav_b}({hex(prav_b)})\n")
+        print(f"OUT lev_b  \t = {lev_b}({hex(lev_b)})")
+        print(f"OUT prav_b \t = {prav_b}({hex(prav_b)})")
+
     shifroblok = lev_b
     shifroblok = ctypes.c_uint64((shifroblok << 32) | (prav_b & convert_from_hex_to_decimal(F32))).value
     return shifroblok
 
-# 9F9618D584EE35B6 - шифровка
-
 def decoding(e_msg):
+    print(f"\nDecoding")
     lev_b   = ctypes.c_uint32((convert_from_hex_to_decimal(e_msg) >> 32) & convert_from_hex_to_decimal(F32)).value
     prav_b  = ctypes.c_uint32(convert_from_hex_to_decimal(e_msg) & convert_from_hex_to_decimal(F32)).value
     for i in range(ROUNDS - 1, -1, -1):
+        print(f"================")
+        print(f"Round = {i}")
         K_i = Ki(i)
         lev_i = lev_b
-        print(f"FKI = {K_i}")
         prav_i = prav_b ^ F(lev_b, K_i)
+        print(f"IN lev_b  \t = {lev_b}({hex(lev_b)})")
+        print(f"IN prav_b \t = {prav_b}({hex(prav_b)})\n")
 
         if (i != 0):
-            # print('YES')
             lev_b = prav_i 
             prav_b = lev_i
         else:
-            # print('NO')
             lev_b = lev_i
             prav_b = prav_i
+        print(f"OUT lev_b  \t = {lev_b}({hex(lev_b)})")
+        print(f"OUT prav_b \t = {prav_b}({hex(prav_b)})")
+
     shifroblok = lev_b
     shifroblok = ctypes.c_uint64((shifroblok << 32) | (prav_b & convert_from_hex_to_decimal(F32))).value
     return shifroblok
