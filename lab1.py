@@ -57,13 +57,8 @@ def Ki(i):
     return value
 
 def encoding(msg):
-    # msg = msg.replace('0x', '')
-    # len_msg = len(msg) // 2
-    # lev_b   = convert_from_hex_to_decimal(msg[:len_msg])
-
     lev_b   = ctypes.c_uint32((convert_from_hex_to_decimal(msg) >> 32) & convert_from_hex_to_decimal(F32)).value
     prav_b  = ctypes.c_uint32(convert_from_hex_to_decimal(msg) & convert_from_hex_to_decimal(F32)).value
-    # assert len(lev_b) == len(prav_b) # !
     for i in range(ROUNDS):
         print(f"Encoding")
         print(f"\n================")
@@ -84,6 +79,7 @@ def encoding(msg):
         print(f"OUT prav_b \t = {prav_b}({hex(prav_b)})")
 
     shifroblok = lev_b
+    # Преобразование в uint64
     shifroblok = ctypes.c_uint64((shifroblok << 32) | (prav_b & convert_from_hex_to_decimal(F32))).value
     return shifroblok
 
@@ -110,6 +106,7 @@ def decoding(e_msg):
         print(f"OUT prav_b \t = {prav_b}({hex(prav_b)})")
 
     shifroblok = lev_b
+    # Преобразование в uint64
     shifroblok = ctypes.c_uint64((shifroblok << 32) | (prav_b & convert_from_hex_to_decimal(F32))).value
     return shifroblok
 
