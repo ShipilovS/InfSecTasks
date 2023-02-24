@@ -24,6 +24,7 @@ F32 = '0xFFFFFFFF'
 # int(bin(int(hex_value, 16)), 2)
 print(KEY)
 
+# func
 def convert_from_hex_to_decimal(value):
     return int(bin(int(value, 16)), 2)
 
@@ -33,10 +34,6 @@ def convert_to_hex(value):
 def convert_from_decimal_to_bin(value):
     return bin(value)
 
-def convert_from_decimal_to_bin32(value):
-    return bin(value >> 32)
-
-# func
 def vlevo(x, t):
     return ctypes.c_uint32((x << t) | (x >> (32 - t))).value
 
@@ -53,7 +50,7 @@ def F(L : int, K : int):
 
 def Ki(i):
     # Преобразование в uint32
-    value = ctypes.c_uint32(vpravo64(convert_from_hex_to_decimal(KEY), 8*i)).value # с 0b + 32 бита или [2:34]
+    value = ctypes.c_uint32(vpravo64(convert_from_hex_to_decimal(KEY), 8*i)).value # или 3*i ?
     return value
 
 def encoding(msg):
