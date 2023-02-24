@@ -16,8 +16,8 @@ alphabet = string.ascii_letters + string.digits
 # KEY = ''.join(secrets.choice(alphabet) for i in range(SIZE_OF_BLOCK))
 # KEY = random.getrandbits(SIZE_OF_BLOCK)
 msg='0x123456789ABCDEF0'
-# KEY = hex(random.getrandbits(SIZE_OF_BLOCK))
-KEY = '0x96EA704CFB1CF672'
+KEY = hex(random.getrandbits(SIZE_OF_BLOCK))
+# KEY = '0x96EA704CFB1CF672'
 F32 = '0xFFFFFFFF'
 # binascii.unhexlify(KEY[2:])
 # bin(int(KEY, 16))
