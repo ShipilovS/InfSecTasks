@@ -16,8 +16,8 @@ b = 6
 SIZE_OF_BLOCK=2**b
 ROUNDS=8
 alphabet = string.ascii_letters + string.digits
-# KEY = hex(random.getrandbits(SIZE_OF_BLOCK))
-KEY = '0x96EA704CFB1CF672'
+KEY = hex(random.getrandbits(SIZE_OF_BLOCK))
+# KEY = '0x96EA704CFB1CF672'
 F32 = '0xFFFFFFFF'
 print(KEY)
 msg = ['0x123456789ABCDEF0', '0x123456789ABCDEF0', '0x1FBA85C953ABCFD0', '0x1FBA85C953ABCFD0']
@@ -55,8 +55,8 @@ def Ki(i):
     return value
 
 def encoding(msg):
-    lev_b   = ctypes.c_uint32((convert_from_hex_to_decimal(msg) >> 32) & convert_from_hex_to_decimal(F32)).value
-    prav_b  = ctypes.c_uint32(convert_from_hex_to_decimal(msg) & convert_from_hex_to_decimal(F32)).value
+    lev_b = ctypes.c_uint32((convert_from_hex_to_decimal(msg) >> 32) & convert_from_hex_to_decimal(F32)).value
+    prav_b = ctypes.c_uint32(convert_from_hex_to_decimal(msg) & convert_from_hex_to_decimal(F32)).value
     for i in range(ROUNDS):
         K_i = Ki(i)
         lev_i = lev_b
@@ -133,8 +133,44 @@ def decodingCBC(e_msg):
         dec_cbc.append(msg_b)
         print(f"Расшифрованный {i} блок -> {msg_b}({convert_to_hex(int(msg_b))})")
     return dec_cbc
+
 print(f"Msg = {msg}")
 
+# Шифрование в режиме CFB
+def encodingCFB(msg):
+    encrypted_array = []
+    block = IV
+    block = encoding(block)
+    plaintext = convert_from_hex_to_decimal(msg[0])
+    ciphertext = plaintext ^ block
+    encrypted_array.append(ciphertext)
+
+    for i in range(1, B):
+        block = ctypes.c_uint64(encoding(convert_to_hex(encrypted_array[i-1]))).value
+        plaintext = convert_from_hex_to_decimal(msg[i])
+        block ^= plaintext
+        encrypted_array.append(block)
+        pass
+    return encrypted_array
+
+# Дешифрование в режиме CFB
+def decodingCFB(e_msg):
+    decrypted_array = []
+    block = IV
+    block = encoding(block)
+    ciphertext = e_msg[0]
+    plaintext = ciphertext ^ block
+    decrypted_array.append(plaintext)
+    print(decrypted_array)
+    for i in range(1, B):
+        block = encoding(convert_to_hex(e_msg[i-1])) # кодируем шифроблок!
+        ciphertext = e_msg[i]
+        block ^= ciphertext
+        decrypted_array.append(block)
+    return decrypted_array
+
+
+print(f"\n\n====Cipher Block Chaining")
 array_e_msg = encodingCBC(msg)
 print(f"array_e_msg = {array_e_msg}")
 print(f"array_e_msg hex's = {list(map(lambda x: convert_to_hex(x), array_e_msg))}\n")
@@ -142,3 +178,12 @@ print(f"array_e_msg hex's = {list(map(lambda x: convert_to_hex(x), array_e_msg))
 array_d_msg = decodingCBC(array_e_msg)
 print(f"array_e_msg = {array_d_msg}")
 print(f"array_e_msg hex's = {list(map(lambda x: convert_to_hex(x), array_d_msg))}")
+
+
+print(f"\n\n====Cipher Feedback")
+array_e_msg_cfb = encodingCFB(msg)
+print(array_e_msg_cfb)
+
+array_d_msg_cfb = decodingCFB(array_e_msg_cfb)
+print(array_d_msg_cfb)
+print(f"array_e_msg hex's = {list(map(lambda x: convert_to_hex(x), array_d_msg_cfb))}")
