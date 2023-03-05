@@ -22,7 +22,8 @@ F32 = '0xFFFFFFFF'
 print(KEY)
 message = ['0x123456789ABCDEF0', '0x123456789ABCDEF0', '0x1FBA85C953ABCFD0', '0x1FBA85C953ABCFD0']
 # инициализационный вектор
-IV = '0x18FD47203C7A23BC'
+IV = hex(random.getrandbits(SIZE_OF_BLOCK))
+print(f"IV = {IV}")
 # число блоков в исходном сообщении
 B = len(message)
 # func
