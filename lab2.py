@@ -20,11 +20,11 @@ KEY = hex(random.getrandbits(SIZE_OF_BLOCK))
 # KEY = '0x96EA704CFB1CF672'
 F32 = '0xFFFFFFFF'
 print(KEY)
-msg = ['0x123456789ABCDEF0', '0x123456789ABCDEF0', '0x1FBA85C953ABCFD0', '0x1FBA85C953ABCFD0']
+message = ['0x123456789ABCDEF0', '0x123456789ABCDEF0', '0x1FBA85C953ABCFD0', '0x1FBA85C953ABCFD0']
 # инициализационный вектор
 IV = '0x18FD47203C7A23BC'
 # число блоков в исходном сообщении
-B = len(msg)
+B = len(message)
 # func
 def convert_from_hex_to_decimal(value):
     return int(bin(int(value, 16)), 2)
@@ -121,7 +121,6 @@ def encodingCBC(msg):
 # Дешифрование в режиме CBC
 def decodingCBC(e_msg):
     dec_cbc = []
-    print(f"msg_cbc = {e_msg}")
     # Расшифровка в режиме CBC
     msg_b = decoding(convert_to_hex(e_msg[0]))
     msg_b ^= convert_from_hex_to_decimal(IV)
@@ -134,7 +133,7 @@ def decodingCBC(e_msg):
         print(f"Расшифрованный {i} блок -> {msg_b}({convert_to_hex(int(msg_b))})")
     return dec_cbc
 
-print(f"Msg = {msg}")
+print(f"message = {message}")
 
 # Шифрование в режиме CFB
 def encodingCFB(msg):
@@ -161,7 +160,6 @@ def decodingCFB(e_msg):
     ciphertext = e_msg[0]
     plaintext = ciphertext ^ block
     decrypted_array.append(plaintext)
-    print(decrypted_array)
     for i in range(1, B):
         block = encoding(convert_to_hex(e_msg[i-1])) # кодируем шифроблок!
         ciphertext = e_msg[i]
@@ -169,21 +167,40 @@ def decodingCFB(e_msg):
         decrypted_array.append(block)
     return decrypted_array
 
+def encodingECB(msg):
+    encrypted_array = []
+    for i in range(B):
+        block = ctypes.c_uint64(encoding(msg[i])).value
+        encrypted_array.append(block)
+    return encrypted_array
+
+def decodingECB(e_msg):
+    decrypted_array = []
+    for i in range(B):
+        block = ctypes.c_uint64(decoding(convert_to_hex(e_msg[i]))).value
+        decrypted_array.append(block)
+    return decrypted_array
 
 print(f"\n\n====Cipher Block Chaining")
-array_e_msg = encodingCBC(msg)
-print(f"array_e_msg = {array_e_msg}")
+array_e_msg = encodingCBC(message)
 print(f"array_e_msg hex's = {list(map(lambda x: convert_to_hex(x), array_e_msg))}\n")
 
 array_d_msg = decodingCBC(array_e_msg)
-print(f"array_e_msg = {array_d_msg}")
 print(f"array_e_msg hex's = {list(map(lambda x: convert_to_hex(x), array_d_msg))}")
 
 
 print(f"\n\n====Cipher Feedback")
-array_e_msg_cfb = encodingCFB(msg)
-print(array_e_msg_cfb)
+array_e_msg_cfb = encodingCFB(message)
+print(f"array_e_msg_cfb hex's = {list(map(lambda x: convert_to_hex(x), array_e_msg_cfb))}")
 
 array_d_msg_cfb = decodingCFB(array_e_msg_cfb)
-print(array_d_msg_cfb)
-print(f"array_e_msg hex's = {list(map(lambda x: convert_to_hex(x), array_d_msg_cfb))}")
+print(f"array_d_msg_cfb hex's = {list(map(lambda x: convert_to_hex(x), array_d_msg_cfb))}")
+
+
+print(f"\n\n====Electronic Codebook")
+array_e_ecb_msg = encodingECB(message)
+print(f"array_d_ecb_msg hex's = {list(map(lambda x: convert_to_hex(x), array_e_ecb_msg))}")
+
+array_d_ecb_msg = decodingECB(array_e_ecb_msg)
+print(f"array_d_ecb_msg hex's = {list(map(lambda x: convert_to_hex(x), array_d_ecb_msg))}")
+
