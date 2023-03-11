@@ -115,7 +115,7 @@ def encodingCBC(msg):
 
         # # шифруем блок
         msg_cbc.append(encoding(convert_to_hex(int(block))))
-        print(f"зашифрованный {i} блок -> {msg_cbc[i]}({convert_to_hex(int(msg_cbc[i]))})")
+        print(f"зашифрованный {i+1} блок -> {msg_cbc[i]}({convert_to_hex(int(msg_cbc[i]))})")
 
     return msg_cbc
 
@@ -126,12 +126,12 @@ def decodingCBC(e_msg):
     msg_b = decoding(convert_to_hex(e_msg[0]))
     msg_b ^= convert_from_hex_to_decimal(IV)
     dec_cbc.append(msg_b)
-    print(f"Расшифрованный первый блок = {msg_b}({convert_to_hex(int(e_msg[0]))})")
+    print(f"Расшифрованный первый блок = {dec_cbc[0]}({convert_to_hex(int(dec_cbc[0]))})")
     for i in range(1, B):
         msg_b = decoding(convert_to_hex(e_msg[i]))
         msg_b ^= e_msg[i-1]
         dec_cbc.append(msg_b)
-        print(f"Расшифрованный {i} блок -> {msg_b}({convert_to_hex(int(msg_b))})")
+        print(f"Расшифрованный {i+1} блок -> {msg_b}({convert_to_hex(int(msg_b))})")
     return dec_cbc
 
 print(f"message = {message}")
@@ -144,13 +144,15 @@ def encodingCFB(msg):
     plaintext = convert_from_hex_to_decimal(msg[0])
     ciphertext = plaintext ^ block
     encrypted_array.append(ciphertext)
+    print(f"зашифрованный первый блок -> {encrypted_array[0]}({convert_to_hex(int(encrypted_array[0]))})")
 
     for i in range(1, B):
         block = ctypes.c_uint64(encoding(convert_to_hex(encrypted_array[i-1]))).value
         plaintext = convert_from_hex_to_decimal(msg[i])
         block ^= plaintext
         encrypted_array.append(block)
-        pass
+        print(f"зашифрованный {i+1} блок -> {encrypted_array[i]}({convert_to_hex(int(encrypted_array[i]))})")
+
     return encrypted_array
 
 # Дешифрование в режиме CFB
@@ -161,11 +163,15 @@ def decodingCFB(e_msg):
     ciphertext = e_msg[0]
     plaintext = ciphertext ^ block
     decrypted_array.append(plaintext)
+    print(f"\nРасшифрованный первый блок = {decrypted_array[0]}({convert_to_hex(int(decrypted_array[0]))})")
+
     for i in range(1, B):
         block = encoding(convert_to_hex(e_msg[i-1])) # кодируем шифроблок!
         ciphertext = e_msg[i]
         block ^= ciphertext
         decrypted_array.append(block)
+        print(f"Расшифрованный {i+1} блок -> {decrypted_array[i]}({convert_to_hex(int(decrypted_array[i]))})")
+
     return decrypted_array
 
 def encodingECB(msg):
