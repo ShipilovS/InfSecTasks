@@ -11,7 +11,7 @@ import binascii
 # ENV
 b = 6
 SIZE_OF_BLOCK=2**b
-ROUNDS=8
+ROUNDS=2
 alphabet = string.ascii_letters + string.digits
 # KEY = ''.join(secrets.choice(alphabet) for i in range(SIZE_OF_BLOCK))
 # KEY = random.getrandbits(SIZE_OF_BLOCK)

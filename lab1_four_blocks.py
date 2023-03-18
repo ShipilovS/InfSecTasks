@@ -11,13 +11,12 @@ import binascii
 # ENV
 b = 6
 SIZE_OF_BLOCK=2**b
-ROUNDS=4
-alphabet = string.ascii_letters + string.digits
+ROUNDS=8
 # KEY = ''.join(secrets.choice(alphabet) for i in range(SIZE_OF_BLOCK))
 # KEY = random.getrandbits(SIZE_OF_BLOCK)
 msg='0x123456789ABCDEF0'
-# KEY = hex(random.getrandbits(SIZE_OF_BLOCK))
-KEY = '0x96EA704CFB1CF672'
+KEY = hex(random.getrandbits(SIZE_OF_BLOCK))
+# KEY = '0x96EA704CFB1CF672'
 F32 = '0xFFFFFFFF'
 F16 = '0xFFFF'
 # binascii.unhexlify(KEY[2:])
@@ -66,24 +65,21 @@ def F(L : int, K : int):
 
 def Ki(i):
     # Преобразование в uint32
-    value = ctypes.c_uint32(vpravo64(convert_from_hex_to_decimal(KEY), 3*i)).value # или 3*i ?
+    value = ctypes.c_uint16(vpravo64(convert_from_hex_to_decimal(KEY), 8*i)).value # или 3*i ?
     return value
 
 def encoding(msg):
-    lev_b   = ctypes.c_uint32((convert_from_hex_to_decimal(msg) >> 32) & convert_from_hex_to_decimal(F32)).value
-    prav_b  = ctypes.c_uint32( convert_from_hex_to_decimal(msg) & convert_from_hex_to_decimal(F32)).value
-
+    print(f"Encoding")
+    print(f"msg = {msg}")
     first_b   = ctypes.c_uint16((convert_from_hex_to_decimal(msg) >> 48) & convert_from_hex_to_decimal(F16)).value
     second_b  = ctypes.c_uint16((convert_from_hex_to_decimal(msg) >> 32) & convert_from_hex_to_decimal(F16)).value
     third_b   = ctypes.c_uint16((convert_from_hex_to_decimal(msg) >> 16) & convert_from_hex_to_decimal(F16)).value
     fourth_b  = ctypes.c_uint16( convert_from_hex_to_decimal(msg) & convert_from_hex_to_decimal(F16)).value
 
     for i in range(ROUNDS):
-        print(f"Encoding")
         print(f"\n================")
         print(f"Round = {i}")
         K_i = Ki(i)
-
         first_i     = first_b
         second_i    = second_b ^ F(first_b, K_i)
         third_i     = third_b
@@ -92,25 +88,22 @@ def encoding(msg):
         print(f"IN second_b \t = {second_i}({hex(second_b)})")
         print(f"IN third_b \t = {third_b}({hex(third_b)})")
         print(f"IN fourth_b \t = {fourth_b}({hex(fourth_b)})")
-
         if (i != ROUNDS - 1):
             first_b  = second_i
-            second_b = third_i 
+            second_b = third_i
             third_b  = fourth_i
             fourth_b = first_i
         else:
-            first_b  = fourth_i
-            second_b = first_i 
-            third_b  = second_i
-            fourth_b = third_i
-
+            first_b  = first_i
+            second_b = second_i 
+            third_b  = third_i
+            fourth_b = fourth_i
         # print(f"OUT lev_b  \t = {lev_b}({hex(lev_b)})")
         # print(f"OUT prav_b \t = {prav_b}({hex(prav_b)})")
         print(f"\nOUT first_b  \t = {first_b}({hex(first_b)})")
         print(f"OUT second_b \t = {second_b}({hex(second_b)})")
         print(f"OUT third_b \t = {third_b}({hex(third_b)})")
         print(f"OUT fourth_b \t = {fourth_b}({hex(fourth_b)})")
-
     shifroblok = first_b
     shifroblok = blind_values(shifroblok, second_b)
     shifroblok = blind_values(shifroblok, third_b)
@@ -122,17 +115,14 @@ def encoding(msg):
 
 def decoding(e_msg):
     print(f"\nDecoding")
-
     first_b   = ctypes.c_uint16((convert_from_hex_to_decimal(e_msg) >> 48) & convert_from_hex_to_decimal(F16)).value
     second_b  = ctypes.c_uint16((convert_from_hex_to_decimal(e_msg) >> 32) & convert_from_hex_to_decimal(F16)).value
     third_b   = ctypes.c_uint16((convert_from_hex_to_decimal(e_msg) >> 16) & convert_from_hex_to_decimal(F16)).value
     fourth_b  = ctypes.c_uint16( convert_from_hex_to_decimal(e_msg) & convert_from_hex_to_decimal(F16)).value
-
     for i in range(ROUNDS - 1, -1, -1):
         print(f"================")
         print(f"Round = {i}")
         K_i = Ki(i)
-
         first_i     = first_b
         second_i    = second_b ^ F(first_b, K_i)
         third_i     = third_b
@@ -141,25 +131,20 @@ def decoding(e_msg):
         print(f"IN second_b \t = {second_b}({hex(second_b)})")
         print(f"IN third_b \t = {third_b}({hex(third_b)})")
         print(f"IN fourth_b \t = {fourth_b}({hex(fourth_b)})")
-
         if (i != 0):
-            first_b  = second_i
-            second_b = third_i 
-            third_b  = fourth_i
-            fourth_b = first_i
-        else:
             first_b  = fourth_i
-            second_b = first_i 
+            second_b = first_i
             third_b  = second_i
             fourth_b = third_i
-        # print(f"OUT lev_b  \t = {lev_b}({hex(lev_b)})")
-        # print(f"OUT prav_b \t = {prav_b}({hex(prav_b)})")
-
+        else:
+            first_b  = first_i
+            second_b = second_i 
+            third_b  = third_i
+            fourth_b = fourth_i
         print(f"\nOUT first_b  \t = {first_b}({hex(first_b)})")
         print(f"OUT second_b \t = {second_b}({hex(second_b)})")
         print(f"OUT third_b \t = {third_b}({hex(third_b)})")
         print(f"OUT fourth_b \t = {fourth_b}({hex(fourth_b)})")
-
     # shifroblok = lev_b
     # Преобразование в uint64
     # shifroblok = ctypes.c_uint64((shifroblok << 32) | (prav_b & convert_from_hex_to_decimal(F32))).value

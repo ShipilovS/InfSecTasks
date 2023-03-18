@@ -15,10 +15,10 @@ import binascii
 b = 6
 SIZE_OF_BLOCK=2**b
 ROUNDS=8
-alphabet = string.ascii_letters + string.digits
 KEY = hex(random.getrandbits(SIZE_OF_BLOCK))
 # KEY = '0x96EA704CFB1CF672'
 F32 = '0xFFFFFFFF'
+F16 = '0xFFFF'
 print(KEY)
 message = ['0x123456789ABCDEF0', '0x123456789ABCDEF0', '0x1FBA85C953ABCFD0', '0x1FBA85C953ABCFD0']
 # инициализационный вектор
@@ -26,6 +26,7 @@ IV = hex(random.getrandbits(SIZE_OF_BLOCK))
 print(f"IV = {IV}")
 # число блоков в исходном сообщении
 B = len(message)
+
 # func
 def convert_from_hex_to_decimal(value):
     return int(bin(int(value, 16)), 2)
@@ -37,7 +38,10 @@ def convert_from_decimal_to_bin(value):
     return bin(value)
 
 def vlevo(x, t):
-    return ctypes.c_uint32((x << t) | (x >> (32 - t))).value
+    return ctypes.c_uint16((x << t) | (x >> (16 - t))).value
+
+def vpravo16(x, t):
+    return ctypes.c_uint16((x >> t) | (x << (16 - t))).value
 
 def vpravo32(x, t):
     return ctypes.c_uint32((x >> t) | (x << (32 - t))).value
@@ -45,9 +49,15 @@ def vpravo32(x, t):
 def vpravo64(x, t):
     return ctypes.c_uint64((x >> t) | (x << (64 - t))).value
 
+def vlevo64(x, t):
+    return ctypes.c_uint64((x << t) | (x >> (64 - t))).value
+
+def blind_values(first_value, second_value):
+    return ctypes.c_uint64((first_value << 16) | (second_value & convert_from_hex_to_decimal(F16))).value
+
 def F(L : int, K : int):
     f1 = vlevo(L, 9)
-    f2 = vpravo32(K, 11) | L
+    f2 = vpravo16(K, 11) | L
     return f1 ^ f2
 
 def Ki(i):
@@ -56,44 +66,64 @@ def Ki(i):
     return value
 
 def encoding(msg):
-    lev_b = ctypes.c_uint32((convert_from_hex_to_decimal(msg) >> 32) & convert_from_hex_to_decimal(F32)).value
-    prav_b = ctypes.c_uint32(convert_from_hex_to_decimal(msg) & convert_from_hex_to_decimal(F32)).value
+    first_b   = ctypes.c_uint16((convert_from_hex_to_decimal(msg) >> 48) & convert_from_hex_to_decimal(F16)).value
+    second_b  = ctypes.c_uint16((convert_from_hex_to_decimal(msg) >> 32) & convert_from_hex_to_decimal(F16)).value
+    third_b   = ctypes.c_uint16((convert_from_hex_to_decimal(msg) >> 16) & convert_from_hex_to_decimal(F16)).value
+    fourth_b  = ctypes.c_uint16( convert_from_hex_to_decimal(msg) & convert_from_hex_to_decimal(F16)).value
+
     for i in range(ROUNDS):
         K_i = Ki(i)
-        lev_i = lev_b
-        prav_i = prav_b ^ F(lev_b, K_i)
-
+        first_i     = first_b
+        second_i    = second_b ^ F(first_b, K_i)
+        third_i     = third_b
+        fourth_i    = fourth_b
         if (i != ROUNDS - 1):
-            lev_b = prav_i 
-            prav_b = lev_i
+            first_b  = second_i
+            second_b = third_i
+            third_b  = fourth_i
+            fourth_b = first_i
         else:
-            lev_b = lev_i
-            prav_b = prav_i
-
-    shifroblok = lev_b
+            first_b  = first_i
+            second_b = second_i 
+            third_b  = third_i
+            fourth_b = fourth_i
+    shifroblok = first_b
+    shifroblok = blind_values(shifroblok, second_b)
+    shifroblok = blind_values(shifroblok, third_b)
+    shifroblok = blind_values(shifroblok, fourth_b)
     # Преобразование в uint64
-    shifroblok = ctypes.c_uint64((shifroblok << 32) | (prav_b & convert_from_hex_to_decimal(F32))).value
-    return shifroblok
+    # shifroblok = ctypes.c_uint64((shifroblok << 32) | (prav_b & convert_from_hex_to_decimal(F32))).value
+    return ctypes.c_uint64(shifroblok).value
 
 def decoding(e_msg):
-    lev_b   = ctypes.c_uint32((convert_from_hex_to_decimal(e_msg) >> 32) & convert_from_hex_to_decimal(F32)).value
-    prav_b  = ctypes.c_uint32(convert_from_hex_to_decimal(e_msg) & convert_from_hex_to_decimal(F32)).value
+    first_b   = ctypes.c_uint16((convert_from_hex_to_decimal(e_msg) >> 48) & convert_from_hex_to_decimal(F16)).value
+    second_b  = ctypes.c_uint16((convert_from_hex_to_decimal(e_msg) >> 32) & convert_from_hex_to_decimal(F16)).value
+    third_b   = ctypes.c_uint16((convert_from_hex_to_decimal(e_msg) >> 16) & convert_from_hex_to_decimal(F16)).value
+    fourth_b  = ctypes.c_uint16( convert_from_hex_to_decimal(e_msg) & convert_from_hex_to_decimal(F16)).value
     for i in range(ROUNDS - 1, -1, -1):
         K_i = Ki(i)
-        lev_i = lev_b
-        prav_i = prav_b ^ F(lev_b, K_i)
-
+        first_i     = first_b
+        second_i    = second_b ^ F(first_b, K_i)
+        third_i     = third_b
+        fourth_i    = fourth_b
         if (i != 0):
-            lev_b = prav_i 
-            prav_b = lev_i
+            first_b  = fourth_i
+            second_b = first_i
+            third_b  = second_i
+            fourth_b = third_i
         else:
-            lev_b = lev_i
-            prav_b = prav_i
-
-    shifroblok = lev_b
+            first_b  = first_i
+            second_b = second_i 
+            third_b  = third_i
+            fourth_b = fourth_i
+    # shifroblok = lev_b
     # Преобразование в uint64
-    shifroblok = ctypes.c_uint64((shifroblok << 32) | (prav_b & convert_from_hex_to_decimal(F32))).value
-    return shifroblok
+    # shifroblok = ctypes.c_uint64((shifroblok << 32) | (prav_b & convert_from_hex_to_decimal(F32))).value
+    plaintext = first_b
+    plaintext = blind_values(plaintext, second_b)
+    plaintext = blind_values(plaintext, third_b)
+    plaintext = blind_values(plaintext, fourth_b)
+    return plaintext
 
 # ======
 
