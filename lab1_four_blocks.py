@@ -80,10 +80,25 @@ def encoding(msg):
         print(f"\n================")
         print(f"Round = {i}")
         K_i = Ki(i)
+
+        # === 1 вариант
+        # first_i     = first_b
+        # second_i    = second_b ^ F(first_b, K_i)
+        # third_i     = third_b
+        # fourth_i    = fourth_b
+
+        # === 2 вариант
+        # first_i     = first_b
+        # second_i    = second_b
+        # third_i     = third_b 
+        # fourth_i    = fourth_b ^ (F(first_b, K_i) & F(second_b, K_i) & F(third_b, K_i))
+        
+        # === 3 вариант
         first_i     = first_b
         second_i    = second_b ^ F(first_b, K_i)
-        third_i     = third_b
-        fourth_i    = fourth_b
+        third_i     = third_b  ^ F(first_b, K_i)
+        fourth_i    = fourth_b ^ F(first_b, K_i)
+
         print(f"IN first_b  \t = {first_b}({hex(first_b)})")
         print(f"IN second_b \t = {second_i}({hex(second_b)})")
         print(f"IN third_b \t = {third_b}({hex(third_b)})")
@@ -123,10 +138,25 @@ def decoding(e_msg):
         print(f"================")
         print(f"Round = {i}")
         K_i = Ki(i)
+
+        # === 1 вариант
+        # first_i     = first_b
+        # second_i    = second_b ^ F(first_b, K_i)
+        # third_i     = third_b
+        # fourth_i    = fourth_b
+
+        # === 2 вариант
+        # first_i     = first_b
+        # second_i    = second_b
+        # third_i     = third_b 
+        # fourth_i    = fourth_b ^ (F(first_b, K_i) & F(second_b, K_i) & F(third_b, K_i))
+
+        # === 3 вариант
         first_i     = first_b
         second_i    = second_b ^ F(first_b, K_i)
-        third_i     = third_b
-        fourth_i    = fourth_b
+        third_i     = third_b  ^ F(first_b, K_i)
+        fourth_i    = fourth_b ^ F(first_b, K_i)
+        
         print(f"IN first_b  \t = {first_b}({hex(first_b)})")
         print(f"IN second_b \t = {second_b}({hex(second_b)})")
         print(f"IN third_b \t = {third_b}({hex(third_b)})")
