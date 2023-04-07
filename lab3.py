@@ -2,6 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+# from scipy.stats import chi2
 
 m = 663608941
 c = 16
@@ -27,9 +28,9 @@ def lehmer_generator(u_0, m, c, p):
     return u_i, R
 
 def length_test(m, c, p):
-    for u_0 in range(1000):
+    for u_0 in range(10):
         u_values, r_values = lehmer_generator(u_0, m, c, p)
-        # print(f"При u_0 = {u_0} len(u_values) = {len(u_values)}")
+        print(f"При u_0 = {u_0} len(u_values) = {len(u_values)}")
 
 
 # print(seeds)
@@ -42,21 +43,30 @@ u_values, r_values = lehmer_generator(u_0, m, c, p)
 # print(f"r_values = {len(r_values)}")
 # print(f"len(u_values) = {len(u_values)}")
 
-# length_test(m, c, p)
+length_test(m, c, p)
 
 fig, ax = plt.subplots()
-# plt.bar([i for i in range(len(r_values))], r_values)
-# plt.show()
+plt.bar([i for i in range(len(r_values))], r_values)
+plt.show()
 
 def pi_test(r_values):
     number = 0
+    value_x = []
+    value_y = []
     for i in range(len(r_values) // 2):
-        r = np.sqrt(r_values[2*i-1]**2 + r_values[2*i]**2)
+        r = np.sqrt(r_values[2*i]**2 + r_values[2*i+1]**2)
         if r < 1:
             number += 1
-    return 8 * number / len(r_values)
+            value_x.append(r_values[2*i])
+            value_y.append(r_values[2*i+1])
 
-pi_value = pi_test(r_values)
+    return 8 * number / len(r_values), value_x, value_y
+
+pi_value, v_x, v_y = pi_test(r_values)
+print(len(v_x))
+print(len(v_y))
+plt.scatter(v_x, v_y)
+plt.show()
 print(pi_value)
 
 print("Проверки на равномерность распределения")
