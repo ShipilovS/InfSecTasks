@@ -3,9 +3,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-m = 22695477
+m = 663608941
 c = 16
-p = 2**12
+p = 2**32
 u_0 = 3
 
 N = 10001
@@ -36,7 +36,7 @@ def length_test(m, c, p):
 # print(R)
 print(f"\n\n")
 u_values, r_values = lehmer_generator(u_0, m, c, p)
-print(f"u_values = {u_values}({len(u_values)})")
+# print(f"u_values = {u_values}({len(u_values)})")
 # print(f"r_values = {r_values}")
 # print(f"u_values = {len(u_values)}")
 # print(f"r_values = {len(r_values)}")
@@ -58,3 +58,9 @@ def pi_test(r_values):
 
 pi_value = pi_test(r_values)
 print(pi_value)
+
+print("Проверки на равномерность распределения")
+m = np.sum(r_values) / len(r_values)
+print(f"Матожидание = {m} (должно быть примерно = 0.5)")
+print(f"Дисперсия = {np.var(r_values)} (должно быть примерно = 0.0833)")
+print(f"ср квадр отклонение = {np.std(r_values)} (должно быть примерно = 0.2887)")
